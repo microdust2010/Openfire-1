@@ -50,14 +50,13 @@ public class RawPrintFilter extends IoFilterAdapter {
 
     @Override
 	public void messageReceived(NextFilter nextFilter, IoSession session, Object message) throws Exception {
-        // Decode the bytebuffer and print it to the stdout
-    	if (enabled && message instanceof ByteBuffer) {
-            ByteBuffer byteBuffer = (ByteBuffer) message;
+       if (enabled && message instanceof IoBuffer) {
+    		IoBuffer byteBuffer = (IoBuffer) message;
             // Keep current position in the buffer
             int currentPos = byteBuffer.position();
             // Decode buffer
             Charset encoder = Charset.forName("UTF-8");
-            CharBuffer charBuffer = encoder.decode(byteBuffer.asReadOnlyBuffer());
+            CharBuffer charBuffer = encoder.decode(byteBuffer.asReadOnlyBuffer().buf());
             // Print buffer content
             System.out.println(prefix + " - RECV (" + session.hashCode() + "): " + charBuffer);
             // Reset to old position in the buffer
@@ -69,9 +68,9 @@ public class RawPrintFilter extends IoFilterAdapter {
 
     @Override
 	public void messageSent(NextFilter nextFilter, IoSession session, WriteRequest writeRequest) throws Exception {
-        if (enabled && writeRequest.getMessage() instanceof ByteBuffer) {
+         if (enabled && writeRequest.getMessage() instanceof IoBuffer) {
             System.out.println(prefix + " - SENT (" + session.hashCode() + "): " +
-                    Charset.forName("UTF-8").decode(((ByteBuffer) writeRequest.getMessage()).asReadOnlyBuffer()));
+                    Charset.forName("UTF-8").decode(((IoBuffer) writeRequest.getMessage()).asReadOnlyBuffer().buf()));
         }
 
         // Pass the message to the next filter
